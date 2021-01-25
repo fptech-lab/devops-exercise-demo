@@ -1,0 +1,56 @@
+---
+- hosts: localhost
+  become_method: sudo
+
+  vars:
+    git_repo: git@github.com:fptech-lab/devops-exercise-demo
+
+  tasks:
+    - name: ensure target has prerequisites
+      package:
+        name: docker.io
+        state: present
+      become: yes
+      tags: prerequisites
+
+    - name: ensure target has prerequisites
+      pip:
+        name: '{{ item }}'
+        requirements: ./requirements.txt
+        state: present
+      loop:
+        - docker
+        - docker-compose
+      become: yes
+      delegate_to: localhost
+      tags: prerequisites
+
+    - name: create local dest folder
+      file:
+        path: ./content
+        state: directory
+      tags: createDir
+
+    - name: download git content
+      git:
+        repo: '{{ git_repo }}'
+        dest: ./content/
+      tags: getContent
+
+    - name: copy needed files to target
+      copy:
+        src: ./content/
+        dest: /mywebapp
+      tags: copyApp
+
+    - name: starting docker services
+      docker_compose:
+        project_src: /mywebapp
+        build: yes
+        state: present
+      register: output
+      tags: startServices
+      
+    - name: debugging
+      debug:
+        var: output

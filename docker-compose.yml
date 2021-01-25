@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    image: mywebimage
+    volumes:
+      - ./html:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
+    ports:
+      - "82:80"
+    restart: always
+    env_file:
+      - .env.compose
+  
+  db:
+    image: mariadb
+    hostname: mydb
+    #volumes:
+    #  - ./db_data:/var/lib/mysql
+    env_file:
+      - .env.compose
